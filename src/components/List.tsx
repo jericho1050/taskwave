@@ -11,6 +11,7 @@ interface ListProps {
   onCardClick: (card: CardType) => void;
   onEditListTitle: (listId: string, newTitle: string) => void;
   onRemoveList: (listId: string) => void;
+  onSortByDate: (listId: string, updatedCards: CardType[]) => void;
   onSortByTitle: (listId: string, updatedCards: CardType[]) => void;
 }
 
@@ -19,13 +20,17 @@ const List: React.FC<ListProps> = ({
   onAddCard,
   onCardClick,
   onEditListTitle,
+  onRemoveList,
+  onSortByTitle,
+  onSortByDate,
 }) => {
   const [isAddingCard, setIsAddingCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [listTitle, setListTitle] = useState(list.title);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-
+  const [sortTitle, setSortTitle] = useState<number>(0);
+  const [sortDate, setSortDate] = useState<number>(0);
   const handleAddCard = () => {
     if (newCardTitle.trim()) {
       onAddCard(list.id, newCardTitle.trim());
@@ -86,11 +91,31 @@ const List: React.FC<ListProps> = ({
   };
 
   const handleRemoveList = () => {
-    throw new Error('Function not implemented.');
+    onRemoveList(list.id);
   };
 
   const handleSortByTitle = () => {
-    throw new Error('Function not implemented.');
+    const updatedCards = list.cards.sort((a, b) => {
+      if (!sortTitle) {
+        setSortTitle(1);
+        return a.title.localeCompare(b.title);
+      }
+      setSortTitle(0);
+      return b.title.localeCompare(a.title);
+    });
+    onSortByTitle(list.id, updatedCards);
+  };
+
+  const handleSortByDate = () => {
+    const updatedCards = list.cards.sort((a, b) => {
+      if (!sortDate) {
+        setSortDate(1);
+        return a.dateAdded.getDate() - b.dateAdded.getDate();
+      }
+      setSortDate(0);
+      return b.dateAdded.getDate() - a.dateAdded.getDate();
+    });
+    onSortByDate(list.id, updatedCards);
   };
 
   return (
@@ -140,7 +165,10 @@ const List: React.FC<ListProps> = ({
                 >
                   Sort by title (Ascending and Descending)
                 </li>
-                <li className="py-2 px-4 rounded cursor-pointer hover:bg-[#8d80d6]">
+                <li
+                  className="py-2 px-4 rounded cursor-pointer hover:bg-[#8d80d6]"
+                  onClick={handleSortByDate}
+                >
                   Sort by date (Ascending and Descending)
                 </li>
               </ul>
